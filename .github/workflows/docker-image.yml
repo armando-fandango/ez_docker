@@ -36,12 +36,12 @@ jobs:
       #    username: ${{ secrets.GITLAB_USERNAME }}
       #    password: ${{ secrets.GITLAB_PASSWORD }}
 
-      #- name: Extract metadata (tags, labels) for Docker
-      #  id: meta
-      #  uses: docker/metadata-action@v4
-      #  with:
-      #    images: |
-      #      ghcr.io/${{ github.repository }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
 
 
       #- name: Build the base image
