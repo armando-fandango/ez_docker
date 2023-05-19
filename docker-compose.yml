@@ -89,7 +89,7 @@ services:
   base:
     extends:
       service: runtime-base
-    image: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
     command: bash -c "lsb_release -a 2> /dev/null ; cmake --version | head -1; echo Node `node --version`; echo yarn `yarn --version`"
     build: 
       context: .
