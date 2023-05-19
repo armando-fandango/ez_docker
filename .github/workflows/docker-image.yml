@@ -54,5 +54,20 @@ jobs:
         uses: docker/bake-action@v3
         with:
           files: docker-compose.yml
-          targets: base, conda, ai
+          targets: base
           push: true
+
+      - name: Build and push conda
+        uses: docker/bake-action@v3
+        with:
+          files: docker-compose.yml
+          targets: conda
+          push: true
+
+      - name: Build and push ai
+        uses: docker/bake-action@v3
+        with:
+          files: docker-compose.yml
+          targets: ai
+          push: true
+      
