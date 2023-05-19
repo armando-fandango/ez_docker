@@ -100,7 +100,7 @@ services:
   base-x:
     extends:
       service: runtime-base-nvidia-x
-    image: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
     command: bash -c "echo =========================; \
              echo 'NVIDIA Info:';nvidia-smi -L; nvidia-smi -B; echo =========================; \
              echo 'Vulkan Info:';vulkaninfo 1>/dev/null; vulkaninfo 2>/dev/null | tail +5 | head -5 ; \
@@ -110,21 +110,21 @@ services:
   conda:
     extends:
       service: runtime-base
-    image: ghcr.io/armando-fandango/ez/ez:0.4-conda-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-conda-bullseye-slim
     command: bash -c "nvidia-smi; which python; python -V;
              which conda; conda -V; which mamba; mamba -V"
     build: 
       context: .
       dockerfile: dockerfiles/Dockerfile-conda-ubuntu2004
       args:
-        from: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+        from: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
     ports:
       - "8888"
 
   ai:
     extends:
       service: runtime-base-nvidia
-    image: ghcr.io/armando-fandango/ez/ez:0.4-ai-conda-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-ai-conda-bullseye-slim
     command: bash -c "nvidia-smi; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available()); print(torch.version.cuda)'"
@@ -132,7 +132,7 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-ai-ubuntu2004
       args:
-        from: ghcr.io/armando-fandango/ez/ez:0.4-conda-bullseye-slim
+        from: ghcr.io/armando-fandango/ezdev/ezdev:0.4-conda-bullseye-slim
     ports:
       - "8888"
 
