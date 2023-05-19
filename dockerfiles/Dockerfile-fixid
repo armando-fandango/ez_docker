@@ -1,0 +1,19 @@
+ARG image=${IMAGE:?}
+FROM ${image}
+
+ENV DEBIAN_FRONTEND=noninteractive
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+SHELL ["/bin/bash", "-c"]
+
+ARG duid=${DUID:-1000}
+ARG dgid=${DGID:-1000}
+ARG uname=${UNAME:-ezdev}
+ARG gname=${GNAME:-ezdev}
+
+USER root
+RUN echo 'before change: `id ${uname}`'
+RUN usermod -u ${duid} ${uname} && groupmod -g ${dgid} ${gname}
+RUN echo 'after change: `id ${uname}`'
+#chown -R ${uname}:${gname} <folders that are not in home>
+USER ${uname}

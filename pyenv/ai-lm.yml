@@ -1,0 +1,16 @@
+channels:
+  - huggingface
+  - fastai
+  - conda-forge
+dependencies:
+  - accelerate
+  - datasets
+  - diffusers
+  - fastai
+#  - langchai
+  - huggingface_hub
+  - lightning
+  - openai
+  - transformers
+  - tokenizers
+

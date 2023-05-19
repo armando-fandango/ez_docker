@@ -1,0 +1,14 @@
+# fixid
+
+services:
+  fixid1:
+    image: ${from}
+    build: 
+      context: .
+      dockerfile: fixid.Dockerfile
+      args:
+        - from=${from}
+        - duid=${duid:-1000}
+        - dgid=${dgid:-1000}
+        - uname=${uname:-ezdev}
+        - gname=${gname:-ezdev}

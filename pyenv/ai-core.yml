@@ -1,0 +1,30 @@
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - scipy
+  - pandas
+
+# core  
+  - matplotlib
+  - seaborn
+
+  - scikit-learn
+  - scikit-image
+  - scikit-optimize
+  - scikit-fmm
+
+# optimization
+  - optuna
+  - hyperopt
+
+# xai
+  - lime
+  - shap
+  - onnx
+
+# vision
+  - opencv
+
+#  - pydicom                 # medical imaging
+#  - albumentations

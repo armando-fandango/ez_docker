@@ -1,0 +1,79 @@
+ARG from
+FROM ${from} as conda-base
+LABEL org.opencontainers.image.authors="armando.ucf@gmail.com"
+
+ENV DEBIAN_FRONTEND=noninteractive
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+SHELL ["/bin/bash","-c"]
+
+ARG mamba_dir="/opt/py"
+ARG uname=ezdev
+ARG gname=ezdev
+
+USER root
+
+RUN mkdir -p ${mamba_dir} && chmod +rx /opt && \
+    chown -R ${uname}:${gname} ${mamba_dir}
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+
+COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
+ARG venv="base"
+ARG activate="source ${home}/.bashrc \
+      && mamba activate ${venv} && umask 0000"
+ENV MAMBA_NO_BANNER=1
+ENV PATH=${mamba_dir}/bin:$PATH
+
+RUN source pyenv/pyenv.sh \ 
+    && umask 0000 \
+    && ez_install_mamba
+
+RUN ${activate} \
+    && conda config --system --set auto_activate_base true \
+    && mamba env config vars set MAMBA_NO_BANNER=1
+
+USER root
+RUN PATH=${mamba_dir}/bin:$PATH && \
+    mamba init $(basename "${SHELL}")
+
+FROM conda-base as conda-jupyter
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/jupyter.yml && \
+  echo "Configuring jupyter..." && \
+  jupyter labextension enable @jupyterlab/debugger && \
+  jupyter labextension enable @jupyterlab/toc && \
+  jupyter labextension enable @jupyterlab/execute_time && \
+  jupyter labextension enable @jupyterlab/nvdashboard && \
+  jupyter contrib nbextension install --sys-prefix && \
+  jupyter nbextension enable --sys-prefix code_prettify/code_prettify  && \
+  jupyter nbextension enable --sys-prefix toc2/main && \
+  jupyter nbextension enable --sys-prefix varInspector/main && \
+  jupyter nbextension enable --sys-prefix execute_time/ExecuteTime && \
+  jupyter nbextension enable --sys-prefix spellchecker/main && \
+  jupyter nbextension enable --sys-prefix scratchpad/main && \
+  jupyter nbextension enable --sys-prefix collapsible_headings/main && \
+  jupyter nbextension enable --sys-prefix codefolding/main
+  #jupyter nbextension enable --sys-prefix jupyter_resource_usage
+
+FROM conda-jupyter as conda-final
+
+RUN ${activate} && mamba env update -n ${venv} --file  ${home}/pyenv/core.yml 
+RUN ${activate} && mamba clean -itcly 
+
+RUN rm -rf ${home}/pyenv 
+
+COPY container-scripts/20-py.sh /opt/container-scripts/entrypoint.d/
+COPY container-scripts/22-jn.sh /opt/py/bin/jn
+COPY container-scripts/22-jl.sh /opt/py/bin/jl
+
+#RUN echo "source /opt/py/etc/profile.d/conda.sh && conda activate base" >> /opt/container-scripts/entrypoint.d/10-env.sh
+#ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]
+#CMD ["bash"]

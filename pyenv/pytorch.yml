@@ -1,0 +1,25 @@
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - pytorch==2.0.1
+  - torchdata
+  - torchvision
+  - torchaudio
+  - torchtext
+  - botorch
+  - captum
+  - tensorboard
+  - pytorch-cuda=11.8
+#  - cuda-toolkit=11.7
+#  - cudatoolkit-dev=11.7
+#  - cuda-cudart=11.7
+#  - cudnn
+#  - nccl
+  - cupy
+#  - cutensor
+#  - cusparselt
+  - mkl
+  - libblas=*=*mkl
+  

@@ -1,0 +1,40 @@
+ARG from
+FROM ${from} as base-conda
+LABEL org.opencontainers.image.authors="armando.ucf@gmail.com"
+
+
+FROM base-conda as base-ai
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-c"]
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ARG uname=ezdev
+ARG gname=ezdev
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
+ARG venv="base"
+ARG activate="source ${home}/.bashrc \
+      && mamba activate ${venv} && umask 0000"
+
+# pytorch has cuda added
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/pytorch.yml
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-core.yml
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-lm.yml
+
+RUN ${activate} && mamba clean -itcly
+
+RUN rm -rf ${home}/pyenv
+
+FROM base-conda as ai
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+COPY --from=base-ai /opt/py /opt/py
+#RUN ${activate} && mamba env update -n ${venv} --file tensorflow.yml
+
+#ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]
+#CMD ["bash"]

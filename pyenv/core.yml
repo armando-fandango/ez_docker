@@ -1,0 +1,31 @@
+channels:
+  - conda-forge
+dependencies:
+  - tqdm
+  - pytest
+  - pytest-cov
+  - python-dotenv
+
+# linters
+  - flake8
+  - ruff
+  - bandit
+  - mypy
+  - radon
+  - pylama # combines many tools
+
+# formatters
+  - black
+  - usort
+  - yapf # needed by jupyter
+  - ufmt # combines many tools
+
+
+#documentation
+  - sphinx # for docs
+  - sphinx_rtd_theme
+  - sphinxcontrib-programoutput
+  - myst-parser
+  - docutils<0.17 #docutils > 0.17 has bug and doesnt format correctly
+
+

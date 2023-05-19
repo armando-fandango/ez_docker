@@ -1,0 +1,139 @@
+# export DUID="$(id -u)"; export DGID="$(id -g)"
+# docker compose run --service-ports --rm base
+version: "3.9"
+name: ez
+
+x-data: &data
+# Modify the paths before the ':' in next 4 lines to match your system
+    volumes:
+      - ${HOME}/exp:/exp
+      - /work:/work # only needed if your exp, unity-envs or navsim folders are symlinked from here
+
+x-code: &code
+    volumes:
+      - $HOME/workspaces:/workspaces
+
+x-exportx: &exportx
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY}:${XAUTHORITY}
+      - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
+      - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+    environment:
+      - DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - XAUTHORITY
+      - XDG_RUNTIME_DIR
+
+x-deploy-nvidia: &deploy-nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
+
+x-debian-image: &debian-image
+    debian:11.6-slim
+
+x-img: &img
+    ${IMAGE:-debian:11.6-slim}
+
+services:
+
+# DUID=`id -u` DGID=`id -g` docker compose build fixid
+  fixid:
+    image: *img
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-fixid
+      args: 
+        image: *img
+        duid: ${DUID:-1000}
+        dgid: ${DGID:-1000}
+
+  runtime-base:
+    <<: [*data]
+    image: *debian-image
+    working_dir: /workpsaces
+  
+  runtime-base-nvidia:
+    extends:
+      service: runtime-base
+    <<: [*deploy-nvidia]
+    command: bash -c "nvidia-smi"
+
+  runtime-base-nvidia-x:
+    extends:
+      service: runtime-base-nvidia
+    <<: [*exportx]
+    command: bash -c "nvidia-smi"
+      
+# Three base
+# base - nvidia-smi and glx works, vulkan doesnt work in this
+# conda : base with conda-mamba
+# ai-conda : ai with conda-mamba 
+
+  base-ubuntu2004:
+    image: ghcr.io/armando-fandango/ez/ez:0.4-base-ubuntu2004
+    command: bash -c "nvidia-smi; vulkaninfo; glxinfo"
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-base-ubuntu2004
+      args:
+        - from=ubuntu:20.04
+
+  base:
+    extends:
+      service: runtime-base
+    image: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+    command: bash -c "lsb_release -a 2> /dev/null ; cmake --version | head -1; echo Node `node --version`; echo yarn `yarn --version`"
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-base-ubuntu2004
+      args:
+        from: *debian-image
+
+  base-x:
+    extends:
+      service: runtime-base-nvidia-x
+    image: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+    command: bash -c "echo =========================; \
+             echo 'NVIDIA Info:';nvidia-smi -L; nvidia-smi -B; echo =========================; \
+             echo 'Vulkan Info:';vulkaninfo 1>/dev/null; vulkaninfo 2>/dev/null | tail +5 | head -5 ; \
+             echo 'OpenGL Info:';glxinfo | head -5; echo ==============================; \
+             echo 'Run vkcube, vkcubecc, glxgears, glxheads to check out cool graphics test'"
+             
+  conda:
+    extends:
+      service: runtime-base
+    image: ghcr.io/armando-fandango/ez/ez:0.4-conda-bullseye-slim
+    command: bash -c "nvidia-smi; which python; python -V;
+             which conda; conda -V; which mamba; mamba -V"
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-conda-ubuntu2004
+      args:
+        from: ghcr.io/armando-fandango/ez/ez:0.4-base-bullseye-slim
+    ports:
+      - "8888"
+
+  ai:
+    extends:
+      service: runtime-base-nvidia
+    image: ghcr.io/armando-fandango/ez/ez:0.4-ai-conda-bullseye-slim
+    command: bash -c "nvidia-smi; which python; python -V;
+             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
+             python -c 'import torch; print(torch.cuda.is_available()); print(torch.version.cuda)'"
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ai-ubuntu2004
+      args:
+        from: ghcr.io/armando-fandango/ez/ez:0.4-conda-bullseye-slim
+    ports:
+      - "8888"
+
+  
