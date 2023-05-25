@@ -28,3 +28,7 @@ dependencies:
 
 #  - pydicom                 # medical imaging
 #  - albumentations
+
+# UI
+  - gradio
+  - streamlit

@@ -22,10 +22,16 @@ dependencies:
 
 
 #documentation
-  - sphinx # for docs
+  - sphinx
+  - docutils
+#  - sphinx<6 # for docs
+#  - docutils<0.17 #docutils > 0.17 has bug and doesnt format correctly
   - sphinx_rtd_theme
+  - sphinx-book-theme
   - sphinxcontrib-programoutput
+  - sphinx-copybutton
+  - sphinx-togglebutton
   - myst-parser
-  - docutils<0.17 #docutils > 0.17 has bug and doesnt format correctly
+
 
 

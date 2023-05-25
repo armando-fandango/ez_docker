@@ -1,8 +1,9 @@
 {
 	"recommendations": [
 		"github.copilot",
-		"github.vscode-pull-request-github",
+		"github.remotehub",
 		"github.vscode-github-actions",
-		"esbenp.prettier-vscode"
+		"github.vscode-pull-request-github",
+		"ms-azuretools.vscode-docker",
 	]
 }

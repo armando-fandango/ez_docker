@@ -104,12 +104,14 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     ##&& apt-get -q autoremove --purge && apt-get -q clean && rm -rf /var/lib/apt/lists/* \
     && ln -s /opt/node/bin/* /usr/local/bin \
     && ln -s /opt/node/bin/node /usr/local/bin/nodejs \
+    && corepack enable \
     # smoke tests
-    && node -v && npm -v && npx
+    && for i in node npm npx pnpm yarn yarnpkg; do echo ${i}:`${i} --version`; done
+    #&& node --version && npm --version && npx --version && pnpm --version && pnpx --version && yarn --version && yarnpkg --version 
 
-ENV YARN_VERSION 1.22.19
+####ENV YARN_VERSION 1.22.19
 
-RUN set -ex \
+####RUN set -ex \
   #&& savedAptMark="$(apt-mark showmanual)" \
   #&& apt-get update && apt-get install -y ca-certificates curl wget gnupg dirmngr --no-install-recommends \
   #&& rm -rf /var/lib/apt/lists/* \
@@ -119,15 +121,15 @@ RUN set -ex \
   #  gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
   #  gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
   #done \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
+####  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
   #&& curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
   #&& gpg --batch --verify yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
-  && mkdir -p /opt \
-  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-  && mv /opt/yarn-v$YARN_VERSION /opt/yarn \
-  && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn \
-  && ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg \
-  && rm yarn-v$YARN_VERSION.tar.gz \
+####  && mkdir -p /opt \
+####  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
+####  && mv /opt/yarn-v$YARN_VERSION /opt/yarn \
+####  && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn \
+####  && ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg \
+####  && rm yarn-v$YARN_VERSION.tar.gz \
   # yarn-v$YARN_VERSION.tar.gz.asc 
   #&& apt-mark auto '.*' > /dev/null \
   #&& { [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark > /dev/null; } \
@@ -140,7 +142,7 @@ RUN set -ex \
   #  | xargs -r apt-mark manual \
   #&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   # smoke test
-  && yarn --version
+####  && yarn --version
 
 FROM base as base-final
 
@@ -150,15 +152,17 @@ RUN ln -s /opt/cmake/bin/* /usr/local/bin \
   && cmake --version
 
 COPY --from=base-with-nodejs /opt/node /opt/node
-COPY --from=base-with-nodejs /opt/yarn /opt/yarn
+#COPY --from=base-with-nodejs /opt/yarn /opt/yarn
 
 # smoke tests
 RUN ln -s /opt/node/bin/* /usr/local/bin \
     && ln -s /opt/node/bin/node /usr/local/bin/nodejs \
-    && node --version && npm --version && npx --version \
-    && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn \
-    && ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg \
-    && yarn --version
+    && corepack enable \
+    && for i in node npm npx pnpm yarn yarnpkg; do echo ${i}:`${i} --version`; done
+    #&& node --version && npm --version && npx --version && pnpm --version\
+    #&& ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn \
+    #&& ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg \
+    #&& yarn --version
 
 RUN mkdir -p /opt/container-scripts/entrypoint.d && chmod -R 777 /opt/container-scripts
 

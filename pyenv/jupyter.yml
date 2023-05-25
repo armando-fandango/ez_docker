@@ -18,3 +18,4 @@ dependencies:
   - notebook>=6.0.0
   - psutil>=5.9.0 
   - webcolors>=1.11
+  - watermark
