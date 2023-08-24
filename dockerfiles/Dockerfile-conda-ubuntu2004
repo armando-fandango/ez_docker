@@ -71,8 +71,8 @@ RUN ${activate} && mamba clean -itcly
 RUN rm -rf ${home}/pyenv 
 
 COPY container-scripts/20-py.sh /opt/container-scripts/entrypoint.d/
-COPY container-scripts/22-jn.sh /opt/py/bin/jn
-COPY container-scripts/22-jl.sh /opt/py/bin/jl
+COPY container-scripts/jn.sh /opt/py/bin/jn
+COPY container-scripts/jl.sh /opt/py/bin/jl
 
 #RUN echo "source /opt/py/etc/profile.d/conda.sh && conda activate base" >> /opt/container-scripts/entrypoint.d/10-env.sh
 #ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]

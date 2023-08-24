@@ -2,27 +2,37 @@ ARG from
 FROM ${from} as base-conda
 LABEL org.opencontainers.image.authors="armando.ucf@gmail.com"
 
-
-FROM base-conda as base-ai
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 #ENV TZ=UTC
 #RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 ARG uname=ezdev
 ARG gname=ezdev
+
+FROM base-conda as base-ai
+
 
 USER ${uname}
 ENV home=/home/${uname}
 WORKDIR ${home}
-COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
+
 ARG venv="base"
 ARG activate="source ${home}/.bashrc \
       && mamba activate ${venv} && umask 0000"
 
 # pytorch has cuda added
+RUN mkdir -p ${home}/pyenv
+COPY --chown=${uname}:${gname} pyenv/pytorch.yml ${home}/pyenv/
 RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/pytorch.yml
+COPY --chown=${uname}:${gname} pyenv/tensorflow.yml ${home}/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/tensorflow.yml
+COPY --chown=${uname}:${gname} pyenv/ai-core.yml ${home}/pyenv/
 RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-core.yml
+COPY --chown=${uname}:${gname} pyenv/ai-lm.yml ${home}/pyenv/
 RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-lm.yml
+COPY --chown=${uname}:${gname} pyenv/ai-lm-pip.yml ${home}/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-lm-pip.yml
 
 RUN ${activate} && mamba clean -itcly
 
@@ -34,7 +44,11 @@ USER ${uname}
 ENV home=/home/${uname}
 WORKDIR ${home}
 COPY --from=base-ai /opt/py /opt/py
-#RUN ${activate} && mamba env update -n ${venv} --file tensorflow.yml
+COPY container-scripts/22-jupyter.sh /opt/container-scripts/entrypoint.d/
+#COPY container-scripts/jupyter-lab.service /etc/systemd/system/
+#RUN sudo systemctl daemon-reload
+#RUN sudo systemctl enable jupyter-lab
+
 
 #ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]
 #CMD ["bash"]

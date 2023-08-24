@@ -23,12 +23,13 @@ dependencies:
   - shap
   - onnx
 
-# vision
+# image-data
   - opencv
-
-#  - pydicom                 # medical imaging
-#  - albumentations
+  - pydicom                 # medical imaging
+  - kornia
+  - albumentations
 
 # UI
   - gradio
   - streamlit
+  

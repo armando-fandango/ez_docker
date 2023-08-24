@@ -7,10 +7,9 @@ dependencies:
   - datasets
   - diffusers
   - fastai
-#  - langchai
   - huggingface_hub
   - lightning
   - openai
   - transformers
   - tokenizers
-
+  

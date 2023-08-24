@@ -6,4 +6,5 @@
 		"source.formatDocument"
 	],
 	"files.autoSave": "afterDelay",
+	"docker.composeCommand": "`docker compose`",
 }

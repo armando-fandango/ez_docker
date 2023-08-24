@@ -2,3 +2,7 @@ channels:
   - conda-forge
 dependencies:
   - tensorflow==2.11.0 # pinned because of pytorch 2.0.0
+  - keras==2.11.0
+  - graphviz
+  - pydot
+  
