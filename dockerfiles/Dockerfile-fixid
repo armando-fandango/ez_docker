@@ -6,14 +6,30 @@ ENV DEBIAN_FRONTEND=noninteractive
 #RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 SHELL ["/bin/bash", "-c"]
 
-ARG duid=${DUID:-1000}
-ARG dgid=${DGID:-1000}
-ARG uname=${UNAME:-ezdev}
-ARG gname=${GNAME:-ezdev}
+ARG huid=${HUID:-9000}
+ARG hgid=${HGID:-9000}
+#ARG huname=${HUNAME:-ezdev}
+#ARG hgname=${HGNAME:-ezdev}
+
+ARG cuid=${CUID:-9000}
+ARG cgid=${CGID:-9000}
+ARG cuname=${CUNAME:-ezdev}
+ARG cgname=${CGNAME:-ezdev}
 
 USER root
 RUN echo 'before change: `id ${uname}`'
-RUN usermod -u ${duid} ${uname} && groupmod -g ${dgid} ${gname}
+# add the host group name and gid
+# RUN groupadd -g ${hgid} ${hgname}
+# set the container group to host gid
+RUN groupmod -g ${hgid} ${cgname}
+# set the host uid for container user
+RUN usermod -u ${huid} ${cuname} 
+# set the host gid for container user
+RUN usermod -g ${hgid} ${cuname}
+
+#&& usermod -a -G ${hgid} ezdev
+#RUN usermod -u ${duid} ${uname} && groupmod -g ${dgid} ${gname}
 RUN echo 'after change: `id ${uname}`'
 #chown -R ${uname}:${gname} <folders that are not in home>
+#sudo usermod -a -G $DGID ezdev
 USER ${uname}

@@ -58,7 +58,7 @@ services:
   runtime-base:
     <<: [*data]
     image: *debian-image
-    working_dir: /workpsace
+    working_dir: /workspace
   
   runtime-base-nvidia:
     extends:
@@ -105,7 +105,7 @@ services:
   base:
     extends:
       service: dev-base
-    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.5-base-bullseye-slim
     command: bash -c "lsb_release -a 2> /dev/null ; cmake --version | head -1; echo Node `node --version`; echo yarn `yarn --version`"
     build: 
       context: .
@@ -116,7 +116,7 @@ services:
   base-x:
     extends:
       service: dev-base-nvidia-x
-    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.5-base-bullseye-slim
     command: bash -c "echo =========================; \
              echo 'NVIDIA Info:';nvidia-smi -L; nvidia-smi -B; echo =========================; \
              echo 'Vulkan Info:';vulkaninfo 1>/dev/null; vulkaninfo 2>/dev/null | tail +5 | head -5 ; \
@@ -125,28 +125,28 @@ services:
              
   conda:
     extends:
-      service: runtime-base
-    image: ghcr.io/armando-fandango/ezdev/ezdev:0.4-conda-bullseye-slim
-    command: bash -c "nvidia-smi; which python; python -V;
+      service: dev-base
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.5-conda-bullseye-slim
+    command: bash -c "which python; python -V;
              which conda; conda -V; which mamba; mamba -V"
     build: 
       context: .
       dockerfile: dockerfiles/Dockerfile-conda-ubuntu2004
       args:
-        from: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
+        from: ghcr.io/armando-fandango/ezdev/ezdev:0.5-base-bullseye-slim
     ports:
       - "8888"
 
   iot:
     extends:
       service: runtime-base
-    image: ghcr.io/armando-fandango/ezdev/ezdev:0.5-iot-bullseye-slim
+    image: ghcr.io/armando-fandango/ezdev/ezdev:0.6-iot-bullseye-slim
     command: bash -c "ls"
     build: 
       context: .
       dockerfile: dockerfiles/Dockerfile-iot-ubuntu2004
       args:
-        from: ghcr.io/armando-fandango/ezdev/ezdev:0.4-base-bullseye-slim
+        from: ghcr.io/armando-fandango/ezdev/ezdev:0.5-base-bullseye-slim
 
   ai:
     extends:
@@ -160,8 +160,8 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-ai-ubuntu2004
       args:
-        from: ghcr.io/armando-fandango/ezdev/ezdev:0.4-conda-bullseye-slim
+        from: ghcr.io/armando-fandango/ezdev/ezdev:0.5-conda-bullseye-slim
     ports:
-      - "${JUPYTER_PORT:-8888}:8888"
+      - "8888"
 
   

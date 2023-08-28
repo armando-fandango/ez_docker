@@ -8,27 +8,34 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 SHELL ["/bin/bash","-c"]
 
-ARG mamba_dir="/opt/py"
 ARG uname=ezdev
 ARG gname=ezdev
 
+ARG mamba_dir="/opt/py"
+
 USER root
+ENV HOME=/root
 
-RUN mkdir -p ${mamba_dir} && chmod +rx /opt && \
-    chown -R ${uname}:${gname} ${mamba_dir}
+RUN mkdir -p ${mamba_dir} && chmod +rx /opt 
+    # && chown -R ${uname}:${gname} ${mamba_dir}
 
-USER ${uname}
-ENV home=/home/${uname}
-WORKDIR ${home}
+#USER ${uname}
+#ENV home=/home/${uname}
 
-COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
+#COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
+#COPY pyenv /root/pyenv
+RUN mkdir -p /root/pyenv
+COPY pyenv/pyenv.sh /root/pyenv/
+COPY pyenv/jupyter.yml /root/pyenv/
+COPY pyenv/core.yml /root/pyenv/
+
 ARG venv="base"
-ARG activate="source ${home}/.bashrc \
+ARG activate="source ${HOME}/.bashrc \
       && mamba activate ${venv} && umask 0000"
 ENV MAMBA_NO_BANNER=1
 ENV PATH=${mamba_dir}/bin:$PATH
 
-RUN source pyenv/pyenv.sh \ 
+RUN source /root/pyenv/pyenv.sh \ 
     && umask 0000 \
     && ez_install_mamba
 
@@ -36,44 +43,50 @@ RUN ${activate} \
     && conda config --system --set auto_activate_base true \
     && mamba env config vars set MAMBA_NO_BANNER=1
 
-USER root
-RUN PATH=${mamba_dir}/bin:$PATH && \
-    mamba init $(basename "${SHELL}")
+RUN mamba init $(basename "${SHELL}")
 
 FROM conda-base as conda-jupyter
 
-USER ${uname}
-ENV home=/home/${uname}
-WORKDIR ${home}
+#USER ${uname}
+#ENV home=/home/${uname}
 
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/jupyter.yml && \
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/jupyter.yml && \
   echo "Configuring jupyter..." && \
   jupyter labextension enable @jupyterlab/debugger && \
   jupyter labextension enable @jupyterlab/toc && \
   jupyter labextension enable @jupyterlab/execute_time && \
-  jupyter labextension enable @jupyterlab/nvdashboard && \
-  jupyter contrib nbextension install --sys-prefix && \
-  jupyter nbextension enable --sys-prefix code_prettify/code_prettify  && \
-  jupyter nbextension enable --sys-prefix toc2/main && \
-  jupyter nbextension enable --sys-prefix varInspector/main && \
-  jupyter nbextension enable --sys-prefix execute_time/ExecuteTime && \
-  jupyter nbextension enable --sys-prefix spellchecker/main && \
-  jupyter nbextension enable --sys-prefix scratchpad/main && \
-  jupyter nbextension enable --sys-prefix collapsible_headings/main && \
-  jupyter nbextension enable --sys-prefix codefolding/main
+  jupyter labextension enable @jupyterlab/nvdashboard 
+  #jupyter contrib nbextension install --sys-prefix && \
+  #jupyter nbextension enable --sys-prefix code_prettify/code_prettify  && \
+  #jupyter nbextension enable --sys-prefix toc2/main && \
+  #jupyter nbextension enable --sys-prefix varInspector/main && \
+  #jupyter nbextension enable --sys-prefix execute_time/ExecuteTime && \
+  #jupyter nbextension enable --sys-prefix spellchecker/main && \
+  #jupyter nbextension enable --sys-prefix scratchpad/main && \
+  #jupyter nbextension enable --sys-prefix collapsible_headings/main && \
+  #jupyter nbextension enable --sys-prefix codefolding/main
   #jupyter nbextension enable --sys-prefix jupyter_resource_usage
 
 FROM conda-jupyter as conda-final
 
-RUN ${activate} && mamba env update -n ${venv} --file  ${home}/pyenv/core.yml 
+RUN ${activate} && mamba env update -n ${venv} --file  /root/pyenv/core.yml 
 RUN ${activate} && mamba clean -itcly 
 
-RUN rm -rf ${home}/pyenv 
+RUN rm -rf ${HOME}/pyenv 
 
-COPY container-scripts/20-py.sh /opt/container-scripts/entrypoint.d/
+COPY container-scripts/entrypoint.d/ezdev/20-py.sh /opt/container-scripts/entrypoint.d/ezdev/
 COPY container-scripts/jn.sh /opt/py/bin/jn
 COPY container-scripts/jl.sh /opt/py/bin/jl
 
+USER ${uname}
+ENV HOME=/home/${uname}
+
+RUN conda config --system --set auto_activate_base true \
+    && mamba env config vars set MAMBA_NO_BANNER=1 \
+    &&  mamba init $(basename "${SHELL}")
+
+USER root
+ENV HOME=/root
 #RUN echo "source /opt/py/etc/profile.d/conda.sh && conda activate base" >> /opt/container-scripts/entrypoint.d/10-env.sh
 #ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]
 #CMD ["bash"]

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# /opt/container-scripts/entrypoint.d contains the entrypoint scripts
+# all scripts in .d/root are executed as root
+# all scripts in .d/ezdev are executed as ezdev
+
 set -e
 
 if [ -z "${ENTRYPOINT_QUIET_LOGS:-}" ]; then
@@ -15,13 +19,14 @@ fi
 #else
 #    echo "-- Second or later container startup --"
 #fi
-echo >&3 "$0: Started entrypoint with user `id -a`"
+echo >&3 "$0: Started entrypoint as user `id -a`"
 
-if /usr/bin/find "/opt/container-scripts/entrypoint.d/" -mindepth 1 -maxdepth 1 -type f -print -quit 2>/dev/null | read v; then
-    echo >&3 "$0: /opt/container-scripts/entrypoint.d/ is not empty, will attempt to perform configuration"
+scripts_folder="/opt/container-scripts/entrypoint.d/root/"
+if /usr/bin/find "${scripts_folder}" -mindepth 1 -maxdepth 1 -type f -print -quit 2>/dev/null | read v; then
+    echo >&3 "$0: ${scripts_folder} is not empty, will attempt to perform configuration"
 
-    echo >&3 "$0: Looking for shell scripts in /opt/container-scripts/entrypoint.d/"
-    FILE_LIST=$(find "/opt/container-scripts/entrypoint.d/" -follow -xtype f -print | sort -V )
+    echo >&3 "$0: Looking for shell scripts in ${scripts_folder}"
+    FILE_LIST=$(find "${scripts_folder}" -follow -xtype f -print | sort -V )
     for f in $FILE_LIST; do
         #case "$f" in
         #    *.sh)
@@ -39,11 +44,9 @@ if /usr/bin/find "/opt/container-scripts/entrypoint.d/" -mindepth 1 -maxdepth 1 
 
     echo >&3 "$0: Configuration complete; ready for start up"
 else
-    echo >&3 "$0: No files found in /opt/container-scripts/entrypoint.d/, skipping configuration"
+    echo >&3 "$0: No files found in ${scripts_folder}, skipping configuration"
 fi
 
-if [ "${1#-}" != "${1}" ] || [ -z "$(command -v "${1}")" ] || { [ -f "${1}" ] && ! [ -x "${1}" ]; }; then
-  set -- "echo" "What the fuck is " "$@"
-fi
+set -- gosu ezdev /opt/container-scripts/entrypoint-ezdev.sh "$@"
 
 exec "$@"

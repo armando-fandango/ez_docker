@@ -7,44 +7,37 @@ SHELL ["/bin/bash", "-c"]
 #ENV TZ=UTC
 #RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-ARG uname=ezdev
-ARG gname=ezdev
+#ARG uname=ezdev
+#ARG gname=ezdev
 
 FROM base-conda as base-ai
 
-
-USER ${uname}
-ENV home=/home/${uname}
-WORKDIR ${home}
-
 ARG venv="base"
-ARG activate="source ${home}/.bashrc \
+ARG activate="source /root/.bashrc \
       && mamba activate ${venv} && umask 0000"
 
 # pytorch has cuda added
-RUN mkdir -p ${home}/pyenv
-COPY --chown=${uname}:${gname} pyenv/pytorch.yml ${home}/pyenv/
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/pytorch.yml
-COPY --chown=${uname}:${gname} pyenv/tensorflow.yml ${home}/pyenv/
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/tensorflow.yml
-COPY --chown=${uname}:${gname} pyenv/ai-core.yml ${home}/pyenv/
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-core.yml
-COPY --chown=${uname}:${gname} pyenv/ai-lm.yml ${home}/pyenv/
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-lm.yml
-COPY --chown=${uname}:${gname} pyenv/ai-lm-pip.yml ${home}/pyenv/
-RUN ${activate} && mamba env update -n ${venv} --file ${home}/pyenv/ai-lm-pip.yml
+RUN mkdir -p /root/pyenv
+COPY pyenv/pytorch.yml /root/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/pytorch.yml
+COPY pyenv/tensorflow.yml /root/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/tensorflow.yml
+COPY pyenv/ai-core.yml /root/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/ai-core.yml
+COPY pyenv/ai-lm.yml /root/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/ai-lm.yml
+COPY pyenv/ai-lm-pip.yml /root/pyenv/
+RUN ${activate} && mamba env update -n ${venv} --file /root/pyenv/ai-lm-pip.yml
 
 RUN ${activate} && mamba clean -itcly
 
-RUN rm -rf ${home}/pyenv
+RUN rm -rf /root/pyenv
 
 FROM base-conda as ai
 
-USER ${uname}
-ENV home=/home/${uname}
-WORKDIR ${home}
 COPY --from=base-ai /opt/py /opt/py
-COPY container-scripts/22-jupyter.sh /opt/container-scripts/entrypoint.d/
+COPY container-scripts/entrypoint.d/ezdev/22-jupyter.sh /opt/container-scripts/entrypoint.d/ezdev/
+#USER root
 #COPY container-scripts/jupyter-lab.service /etc/systemd/system/
 #RUN sudo systemctl daemon-reload
 #RUN sudo systemctl enable jupyter-lab
